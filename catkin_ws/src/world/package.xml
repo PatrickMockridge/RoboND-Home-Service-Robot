@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>world</name>
+  <version>0.0.0</version>
+  <description>
+  	Package to store shared files associated with world used in various other packages.
+  </description>
+
+  <maintainer email="croomjm@gmail.com">Jordan Croom</maintainer>
+  <license>MIT</license>
+  <author>Jordan Croom</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>
