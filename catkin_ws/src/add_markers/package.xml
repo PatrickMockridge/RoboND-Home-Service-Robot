@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>add_markers</name>
+  <version>0.0.0</version>
+  <description>
+  	Package to send multiple pick/place goals to Udacity home service robot.
+  </description>
+
+  <maintainer email="croomjm@gmail.com">Jordan Croom</maintainer>
+  <license>MIT</license>
+  <author>Jordan Croom</author>
+  
+  <!--adapted from ROS tutorial found at the URL below
+  http://wiki.ros.org/rviz/Tutorials/Markers%3A%20Basic%20Shapes
+  -->
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>visualization_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  
+  <build_export_depend>visualization_msgs</build_export_depend>
+  <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>tf</build_export_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>nav_msgs</build_export_depend>
+  
+  <exec_depend>visualization_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>tf</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+
+</package>

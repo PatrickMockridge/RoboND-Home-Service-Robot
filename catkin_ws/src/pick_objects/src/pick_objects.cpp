@@ -1,67 +1,74 @@
 #include <ros/ros.h>
-#include <move_base_msgs/MoveBaseAction.h>
-#include <actionlib/client/simple_action_client.h>
+#include <move_base_msgs/MoveBaseAction.h> //Goal position
+#include <actionlib/client/simple_action_client.h> //Commanding to naviagate to goal
+#include <visualization_msgs/Marker.h> //Goal Marker
 
 // Define a client for to send goal requests to the move_base server through a SimpleActionClient
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
-int main(int argc, char** argv){
-  // Initialize the simple_navigation_goals node
-  ros::init(argc, argv, "pick_objects");
+using namespace std;
+ros::Subscriber marker_subscriber;
 
-  //tell the action client that we want to spin a thread by default
-  MoveBaseClient ac("move_base", true);
+//set time limit for pursuing the goal pose
+int goalTimeout = 200;
 
-  // Wait 5 sec for move_base action server to come up
-  while(!ac.waitForServer(ros::Duration(5.0))){
-    ROS_INFO("Waiting for the move_base action server to come up");
-  }
-
+move_base_msgs::MoveBaseGoal createGoal(const visualization_msgs::Marker &m){
   move_base_msgs::MoveBaseGoal goal;
-
-  // set up the frame parameters
   goal.target_pose.header.frame_id = "map";
   goal.target_pose.header.stamp = ros::Time::now();
+  goal.target_pose.pose = m.pose;
+  return goal;
+}
+  
+bool pursueGoal(move_base_msgs::MoveBaseGoal &g){
+  //tell the action client that we want to spin a thread by default
+  MoveBaseClient ac("move_base", true);
+  
+  // Wait 5 sec for move_base action server to come up
+  while(!ac.waitForServer()){
+    ROS_INFO("Waiting for the move_base action server to come up");
+  }
+  
+  ac.sendGoal(g);
+  
+  ac.waitForResult(ros::Duration(goalTimeout));
 
-  // Define a position and orientation for the robot to reach
-  goal.target_pose.pose.position.x = 3.8;
-  goal.target_pose.pose.position.y = 2.6;
-  goal.target_pose.pose.orientation.w = 1.0;
+  if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED){ 
+    return true;
+  }else{
+  	return false;
+  }
+  
+}
 
-   // Send the goal position and orientation for the robot to reach
-  ROS_INFO("Sending goal");
-  ac.sendGoal(goal);
-
-  // Wait an infinite time for the results
-  ac.waitForResult();
-
-  // Check if the robot reached its goal
-  if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-  {
-    ROS_INFO("The robot reached pickup goal");
-    ROS_INFO("Wait for 5 seconds");
+void markerCallback(const visualization_msgs::Marker &m){
+  ROS_INFO("Received new goal location. Plotting path...");
+  move_base_msgs::MoveBaseGoal goal = createGoal(m);
+  bool success = pursueGoal(goal);
+  
+  if(success){
+    ROS_INFO("Goal pose reached. Waiting 5 seconds...");
     ros::Duration(5.0).sleep();
-
-    goal.target_pose.pose.position.x = 3.8;
-    goal.target_pose.pose.position.y = -0.5;
-    goal.target_pose.pose.orientation.w = 1.0;
-
-    ROS_INFO("Sending drop off goal");
-    ac.sendGoal(goal);
-    ac.waitForResult();
-
-    if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-    {
-      ROS_INFO("The robot reached drop off goal");
-    }
-    else
-    {
-      ROS_INFO("The robot failed to reach drop off goal");
-    }
+  }else{
+    ROS_INFO("Failed to reach goal pose for some reason.  ¯\\_(ツ)_/¯");
   }
-  else
-  {
-    ROS_INFO("The robot failed to reach pickup goal");
+}
+
+int main(int argc, char** argv){
+  // Initialize the pick_objects node
+  ros::init(argc, argv, "pick_objects");
+  
+  // Create a ROS NodeHandle object
+  ros::NodeHandle n;
+  
+  //create marker subscriber
+  marker_subscriber = n.subscribe("/visualization_marker", 1, markerCallback);
+  
+  // Enter an infinite loop where the marker_callback function will be called when new marker messages arrive
+  ros::Duration time_between_ros_wakeups(0.5);
+  while (ros::ok()) {
+    ros::spinOnce();
+    time_between_ros_wakeups.sleep();
   }
-  return 0;
+
 }

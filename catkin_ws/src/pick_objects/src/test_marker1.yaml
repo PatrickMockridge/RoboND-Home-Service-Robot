@@ -1,0 +1,38 @@
+header: 
+  seq: 0
+  stamp: 
+    secs: 0
+    nsecs: 0
+  frame_id: "map"
+ns: "add_marker"
+id: 0
+type: 1
+action: 0
+pose: 
+  position: 
+    x: -4.16
+    y: 1.64
+    z: 0.03
+  orientation: 
+    x: 0.0
+    y: 0.0
+    z: 1.0
+    w: 0.550000011921
+scale: 
+  x: 0.1
+  y: 0.1
+  z: 0.1
+color: 
+  r: 0.0
+  g: 0.0
+  b: 1.0
+  a: 1.0
+lifetime: 
+  secs: 0
+  nsecs:         0
+frame_locked: False
+points: []
+colors: []
+text: ''
+mesh_resource: ''
+mesh_use_embedded_materials: False
