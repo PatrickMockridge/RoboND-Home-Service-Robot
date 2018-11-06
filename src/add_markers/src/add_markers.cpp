@@ -26,31 +26,12 @@ void testPoseCallback(const nav_msgs::Odometry::ConstPtr &msg){
 
 const float positionError(const geometry_msgs::Pose &bot, const geometry_msgs::Pose &goal){
   const float distance = sqrt(pow(bot.position.x-goal.position.x, 2) + pow(bot.position.y-goal.position.y,2));
-  
+
   //const float distance = p1.position.distance(p2.position);
   return distance;
 }
 
 const float headingError(const geometry_msgs::Pose &bot, const geometry_msgs::Pose &goal){
-  //not fully implemented at this time
-  
-  //tf::Vector3 botXaxis;
-  //botXaxis.x = 1.0;
-  //botXaxis.y = 0.0;
-  //botXaxis.z = 0.0;
-  //tf::Vector3 goalXaxis = botXaxis;
-  
-  //rotate the x axes (heading) by the quaternions
-  //botXaxis = botXaxis.rotate(bot.getAxis(), bot.getW());
-  //goalXaxis = goalXaxis.rotate(goal.getAxis(), goal.getW());
-  
-  //project onto XY plane
-  //botXaxis.z = 0;
-  //goalXaxis.z = 0;
-  
-  //const float yawError = botXaxis.angle(goalXaxis);
-
-  //return yawError;
   return 0.0;
 }
 
@@ -58,15 +39,15 @@ void poseCallback(const nav_msgs::Odometry::ConstPtr &msg){
   const geometry_msgs::Pose p = msg->pose.pose;
   const float headingErr = headingError(p, goalPose);
   const float positionErr = positionError(p, goalPose);
-  
+
   if((headingErr < headingTolerance && positionErr < positionTolerance)){
     poseAchieved = true;
   }else{
     ROS_INFO("Current pose error exceeds pose tolerance of %f radians (heading) and %f meters (position)", headingTolerance, positionTolerance);
     ROS_INFO("Heading Error: Ignored", headingErr);
     ROS_INFO("Position Error: %f\n", positionErr);
-  }  
-} 
+  }
+}
 
 visualization_msgs::Marker createMarker(float (&pose)[7]){
   // Set our initial shape type to be a cube
@@ -98,33 +79,33 @@ visualization_msgs::Marker createMarker(float (&pose)[7]){
   marker.pose.orientation.w = pose[6];
 
   // Set the scale of the marker -- 1x1x1 here means 1m on a side
-  marker.scale.x = 0.1;
-  marker.scale.y = 0.1;
-  marker.scale.z = 0.1;
+  marker.scale.x = 0.2;
+  marker.scale.y = 0.2;
+  marker.scale.z = 0.2;
 
-  // Set the color -- be sure to set alpha to something non-zero!
+  // Set the color
   marker.color.r = 0.0f;
-  marker.color.g = 0.0f;
-  marker.color.b = 1.0f;
+  marker.color.g = 1.0f;
+  marker.color.b = 0.0f;
   marker.color.a = 1.0;
 
   marker.lifetime = ros::Duration();
-  
+
   return marker;
 }
 
 void publishPose(ros::NodeHandle &n, float (&pose)[7], ros::Duration &timeout){
   poseAchieved = false;
-  
-  //covert pose array to marker message
+
+  //convert the pose array to a marker message
   visualization_msgs::Marker marker = createMarker(pose);
-  
-  //set current goal pose to the marker pose
+
+  //set the current goal pose to the marker pose
   goalPose = marker.pose;
-  
-  //create new marker publisher
+
+  //create a new marker publisher
   ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
-  
+
   //check if anything is subscribing to the marker publisher
   while (marker_pub.getNumSubscribers() < 1)
   {
@@ -132,23 +113,23 @@ void publishPose(ros::NodeHandle &n, float (&pose)[7], ros::Duration &timeout){
     {
       break;
     }
-    ROS_WARN_ONCE("Please create a subscriber to the marker");
+    ROS_WARN_ONCE("Warning: Create a subscriber to the marker");
     ros::Duration(1).sleep();
   }
-  
+
   //listen to the bot odometry to determine if goal pose is reached
   //compare against published marker pose as goal pose (need boost bind to pass this into callback)
-  ROS_INFO("Creating odom subscriber.");
+  ROS_INFO("Creating odometry subscriber.");
   ros::Subscriber bot_pose_subscriber = n.subscribe("odom", 1, poseCallback);
-  
+
   ROS_INFO("Publishing marker.");
   marker_pub.publish(marker);
-  
+
   //mark start time to track time since marker published
   ros::Time start = ros::Time::now();
   ros::Time now = ros::Time::now();
-  
-  
+
+
   ros::Rate loop_frequency(1); //check pose at 1Hz
   while((now - start)<timeout && !poseAchieved && ros::ok()){
     ros::spinOnce();
@@ -160,14 +141,14 @@ void publishPose(ros::NodeHandle &n, float (&pose)[7], ros::Duration &timeout){
 
 bool checkIfTesting(){
   //determine if running in testing mode
-  ROS_INFO("Would you like to run in test mode? Enter 0 for No or 1 for Yes");
-  
+  ROS_INFO("Run in test mode? Enter 0 for No or 1 for Yes");
+
   int testing;
   while(true){
     if(std::cin >> testing){
       return (bool) testing;
     }else{
-      ROS_INFO("Please enter either 1 or 2");
+      ROS_INFO("Please enter either 0 or 1");
     }
   }
 }
@@ -175,7 +156,7 @@ bool checkIfTesting(){
 int main( int argc, char** argv ){
   ros::init(argc, argv, "add_markers");
   ros::NodeHandle n;
-  
+
   //determine if running in testing mode
   //if so, just immediately move on to next marker
   ros::Duration poseTimeout;
@@ -183,33 +164,33 @@ int main( int argc, char** argv ){
   if(testing){
     poseTimeout = ros::Duration(0.0);
   }else{
-    poseTimeout = ros::Duration(200.0);
+    poseTimeout = ros::Duration(150.0);
   }
-  
+
   //send pickup pose with testing status flag
   float pickupPose[7] = {-4.16, 1.64, 0.03, 0, 0, 1.0, 0.55};
   ROS_INFO("Publishing pick up pose marker.");
   publishPose(n, pickupPose, poseTimeout);
-  
+
   if(poseAchieved){
-    ROS_INFO("Reached pick up pose! Waiting 5 seconds before sending drop off pose...");
+    ROS_INFO("Reached pick up pose! Waiting 3 seconds before sending drop off pose...");
   }else{
-    ROS_INFO("Failed to reach the pick up pose. Sending drop off pose anyway because everyone deserves a second chance. Waiting 5 seconds...");
+    ROS_INFO("Failed to reach the pick up pose. Trying again. Waiting 3 seconds...");
   }
-  ros::Duration(5).sleep();
-  
+  ros::Duration(3).sleep();
+
   //send drop off pose with testing status flag
   float dropoffPose[7] = {3.47, 4.28, 0.0, 0, 0, 1.0, 2.0};
   ROS_INFO("Publishing drop off pose marker.");
   publishPose(n, dropoffPose, poseTimeout);
-  
+
   if(poseAchieved){
-    ROS_INFO("Reached drop off pose! What a superstar.");
+    ROS_INFO("Drop off pose reached.");
   }else{
-    ROS_INFO("Failed to reach the drop off pose. Better luck next time.");
+    ROS_INFO("Failed to reach the drop off pose.");
   }
-  ros::Duration(5).sleep();
-  
+  ros::Duration(3).sleep();
+
   return 0;
-    
+
 }
