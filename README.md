@@ -31,5 +31,3 @@ Now you should be prepared to go. From the `catkin_ws/` directory run the follow
 Many terminals will now open, each running a separate piece of the puzzle.
 
 When the final terminal appears it will ask if you'd like to run in testing mode. Type 0 and then press enter. If 1 is entered, it will merely ignore the actual position of the robot and run as though the goal locations are reached immediately.
-
-Some other shell scripts exist in the same directory to test out portions of the top level program. Feel free to try them out!
