@@ -14,7 +14,7 @@ The final project of the Udacity Robotics Nanodegree incorporates a number of el
 This repository is intended to run only on Linux Ubuntu v16.04 with ROS Kinetic. Create a Catkin Workspace if you have not already done so, as explained here ((here)[http://wiki.ros.org/catkin/Tutorials/create_a_workspace]).
 
 To install, clone the repository to /home/workspace. The command below will pull all required submodules and copy directly to Catkin Workspace.
-`git clone --recurse-submodules https://github.com/PatrickMockridge/RoboND-Home-Service-Robot.git`
+`git clone https://github.com/PatrickMockridge/RoboND-Home-Service-Robot.git`
 
 Once all the necessary files are in place, run the following commands from the catkin_ws directory:
 1. `source devel/setup.bash`
